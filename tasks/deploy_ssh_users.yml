@@ -1,0 +1,40 @@
+---
+- name: ssh_users | Remove authorized_keys
+  file:
+    path: "/etc/ssh/authorized_keys"
+    state: "absent"
+- name: ssh_users | Create sshd configuration
+  template:
+    src: "sshd_config.j2"
+    dest: "/etc/ssh/sshd_config"
+    owner: "root"
+    group: "root"
+    force: "yes"
+    mode: "0644"
+    validate: "sshd -T -f %s"
+  notify:
+  - "Restart sshd"
+- name: ssh_users | Create users
+  user:
+    name: "{{ item.key }}"
+    uid: "{{ item.value.uid }}"
+    group: "root"
+    groups: "wheel"
+    shell: "/bin/bash"
+    createhome: "yes"
+    generate_ssh_key: "no"
+    remove: "yes"
+    force: "yes"
+    state: "{{ item.value.state }}"
+  loop: "{{ hostvars[inventory_hostname][target_group] | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+- name: ssh_users | Create ssh keys
+  authorized_key:
+    user: "{{ item.key }}"
+    key: "{{ item.value.rsa }}"
+    state: "{{ item.value.state }}"
+    exclusive: "yes"
+  loop: "{{ hostvars[inventory_hostname][target_group] | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"

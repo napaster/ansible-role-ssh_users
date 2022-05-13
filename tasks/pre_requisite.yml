@@ -1,0 +1,8 @@
+---
+- name: ssh_users | Assert that target group variable is defined
+  assert:
+    that:
+    - "hostvars[inventory_hostname]['target_group'] is defined"
+    - "hostvars[inventory_hostname]['target_group'] != ''"
+    msg: "Target group is not defined."
+    quiet: "true"
