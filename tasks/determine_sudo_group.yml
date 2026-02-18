@@ -1,0 +1,35 @@
+---
+- name: "Get group information from system"
+  getent:
+    database: group
+  when: ansible_getent_group is not defined
+
+- name: "Check if wheel group exists"
+  set_fact:
+    wheel_exists: "{{ 'wheel' in ansible_facts.getent_group.keys() }}"
+  when: ansible_facts.getent_group is defined
+
+- name: "Check if sudo group exists"
+  set_fact:
+    sudo_exists: "{{ 'sudo' in ansible_facts.getent_group.keys() }}"
+  when: ansible_facts.getent_group is defined
+
+- name: "Determine sudo group based on what exists"
+  set_fact:
+    sudo_group: "{{ 'wheel' if wheel_exists | default(false) else 'sudo' }}"
+  when: wheel_exists is defined or sudo_exists is defined
+
+- name: "Fallback to distribution detection"
+  set_fact:
+    sudo_group: "{{ 
+      'wheel' if ansible_os_family in ['RedHat', 'Suse', 'Arch'] or
+                 ansible_distribution in ['AlmaLinux', 'CentOS', 'Fedora', 'Rocky']
+      else 'sudo' 
+    }}"
+  when: sudo_group is not defined
+
+- name: "Create sudo group if it doesn't exist"
+  group:
+    name: "{{ sudo_group }}"
+    state: present
+  when: sudo_group is defined
