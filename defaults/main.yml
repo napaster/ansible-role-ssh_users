@@ -1,0 +1,4 @@
+---
+ssh_users_default_target_group: 'admin'
+ssh_users_default_users:
+  - 'napaster'

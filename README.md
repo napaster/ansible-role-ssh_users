@@ -35,6 +35,19 @@ Run playbook:
 ansible-playbook deploy_ssh_users.yml -e target_group=users
 ```
 
+If `target_group` is not defined, role uses `admin` and deploys only
+`napaster` by default:
+
+```yaml
+ssh_users_default_target_group: 'admin'
+ssh_users_default_users:
+  - 'napaster'
+```
+
+To deploy the full group, pass `target_group` explicitly. To deploy only
+selected users from the target group, pass `target_users` or override
+`ssh_users_default_users`.
+
 ## Notice
 
 Only one group deployed on one play. Use script to avoid this or sumbit PR.
